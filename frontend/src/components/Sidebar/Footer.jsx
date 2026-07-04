@@ -6,15 +6,21 @@ import useLogout from '../../hooks/useLogout';
 const Footer = () => {
   const {loading, logout}=useLogout();
   return (
-    <div className='flex items-end fixed bottom-3 left-4' onClick={logout}>
-    {loading ? (
-      <span className='loading loading-spinner'></span>
-    ):( 
-      <RiLogoutBoxLine className='w-6 h-6 cursor-pointer'/>
-    )}
+    <div 
+      className='flex items-center gap-3 py-2.5 px-4 hover:bg-red-500/10 rounded-2xl text-rose-400 hover:text-rose-300 transition-all duration-300 cursor-pointer self-start w-auto select-none active:scale-[0.98]' 
+      onClick={logout}
+    >
+      {loading ? (
+        <span className='loading loading-spinner loading-sm'></span>
+      ) : ( 
+        <>
+          <RiLogoutBoxLine className='w-5 h-5'/>
+          <span className="text-sm font-semibold tracking-wide">Logout</span>
+        </>
+      )}
     </div>
-    
   )
 }
 
 export default Footer
+
