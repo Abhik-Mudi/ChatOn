@@ -10,7 +10,7 @@ const server=http.createServer(app)
 // and creating a new instance of Server with the HTTP server
 const io=new Server(server, {
     cors: {
-        origin: ["http://localhost:3000"],
+        origin: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, "http://localhost:3000"] : "*",
         methods: ["GET", "POST"]
     }
 })

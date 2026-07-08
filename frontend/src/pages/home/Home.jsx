@@ -8,9 +8,9 @@ const Home = () => {
   const { selectedConversation } = useConversation()
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center p-0 sm:p-4 md:p-8">
-      {/* Main glass card container */}
-      <div className="flex w-full h-screen sm:h-[85vh] sm:max-w-5xl bg-slate-900/40 rounded-none sm:rounded-3xl shadow-2xl backdrop-blur-xl border-none sm:border border-white/10 items-stretch overflow-hidden">
+    <div className="h-screen w-screen overflow-hidden bg-slate-950/20">
+      {/* Full screen glass layout container */}
+      <div className="flex w-full h-full backdrop-blur-xl items-stretch overflow-hidden">
         
         {/* Sidebar wrapper */}
         {/* On mobile: show if no conversation is selected. On desktop: always show and set width */}
@@ -35,4 +35,5 @@ const Home = () => {
   )
 }
 
-export default Home
+export default Home
+
