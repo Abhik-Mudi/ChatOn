@@ -20,9 +20,6 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(cookieParser())
 
-app.get("/", (req, res)=>{
-    res.json({status: "success", message: "Welcome to the Chat App API!"})
-})
 // API routes
 app.use("/api/auth", authRouter) 
 app.use("/api/messages", messagesRouter) 
