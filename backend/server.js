@@ -45,12 +45,9 @@ app.use("/api/messages", messagesRouter)
 app.use("/api/users", usersRouter) 
 
 // Serve static assets in production or when serving static files is enabled
-if (process.env.NODE_ENV === "production" || process.env.SERVE_STATIC === "true") {
-    app.use(express.static(path.join(__dirname, "/frontend/dist")));
-    app.get("/", (req, res) => {
-        res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
-    });
-}
+app.get("/", (req, res) => {
+    res.send("API is running...");
+})
 
 // Start the server and connect to MongoDB
 server.listen(PORT, ()=>{
