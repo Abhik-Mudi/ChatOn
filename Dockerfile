@@ -13,5 +13,7 @@ RUN npm install
 # Copy the rest of your backend code
 COPY . .
 
+EXPOSE 5000
+
 # Start the server
 CMD ["node", "backend/server.js"]
