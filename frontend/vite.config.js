@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-const apiUrl = process.env.NODE_ENV === "development" ? "http://localhost:5000" : "https://chatonam.alwaysdata.net/"
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // https://vite.dev/config/
 export default defineConfig({
