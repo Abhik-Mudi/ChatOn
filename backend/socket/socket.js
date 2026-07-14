@@ -1,8 +1,14 @@
 import { Server } from "socket.io";
+import Redis from "ioredis";
 import http from "http"
 import express from "express"
+import { createAdapter } from "@socket.io/redis-adapter";
 
 const app=express();
+
+// Setting up Redis clients for pub/sub functionality to enable scaling of the socket.io server across multiple instances
+const pubClient=new Redis(process.env.REDIS_URL);
+const subClient=pubClient.duplicate();
 
 const server=http.createServer(app)
 
@@ -12,7 +18,17 @@ const io=new Server(server, {
     cors: {
         origin: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, "http://localhost:3000"] : "*",
         methods: ["GET", "POST"]
-    }
+    },
+    adapter: createAdapter(pubClient, subClient)
+})
+
+// Setting up event listeners for the pubClient to log connection and error events
+pubClient.on("connect", ()=>{
+    console.log("pub client connected")
+})
+
+pubClient.on("error", (err)=>{
+    console.log("pub client error: ", err)
 })
 
 // Function to get the socket ID of a receiver based on their user ID
