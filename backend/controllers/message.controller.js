@@ -1,6 +1,6 @@
 import Conversation from "../models/conversationModel.js"
 import Message from "../models/messageModel.js";
-import { getReceiverSocketId, io } from "../socket/socket.js";
+import { io } from "../socket/socket.js";
 
 // This function handles sending a message
 // It checks if a conversation exists between the sender and receiver, creates one if it doesn't,
@@ -33,10 +33,7 @@ export const sendMessage=async (req, res)=>{
             await conversation.save();
         }
 
-        const receiverSocketId=getReceiverSocketId(receiverId)
-        if(receiverSocketId){
-            io.to(receiverSocketId).emit("newMessage", newMessage)
-        }
+        io.to(receiverId).emit("newMessage", newMessage)
 
         res.send(newMessage)
     } catch (error) {

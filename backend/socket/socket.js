@@ -31,31 +31,45 @@ pubClient.on("error", (err)=>{
     console.log("pub client error: ", err)
 })
 
-// Function to get the socket ID of a receiver based on their user ID
-export const getReceiverSocketId=(receiverId)=>{
-    return userSocketMap[receiverId];
-}
-
-const userSocketMap={} // Object to map user IDs to their socket IDs
-
 // Listening for new connections to the socket.io server
 // When a user connects, their socket ID is stored in the userSocketMap
 // and the list of online users is emitted to all connected clients
 // When a user disconnects, their socket ID is removed from the userSocketMap
-io.on("connection", (socket)=>{
+io.on("connection", async (socket)=>{
     console.log("User connected:", socket.id);
 
     const userId=socket.handshake.query.userId
-    if(userId!="undefined") userSocketMap[userId]=socket.id;
+    if(userId && userId!=='undefined'){
+        // Join the user to a room with their userId so that we can send messages to them specifically
+        socket.join(userId);
+        // Increment the connection count for the user in Redis
+        const connectionCount=await pubClient.hincrby("online_users", userId, 1);
 
-    io.emit("getOnlineUsers", Object.keys(userSocketMap))
+        // If this is the first connection for the user, emit the list of online users to all connected clients
+        if(connectionCount === 1){
+            const onlineUsers=await pubClient.hkeys("online_users")
+            io.emit("getOnlineUsers", onlineUsers);
+        }
+    }
 
-    socket.on("disconnect", ()=>{
+    socket.on("disconnect", async ()=>{
         console.log("User disconnected: ", socket.id);
-        delete userSocketMap[userId]
-        io.emit("getOnlineUsers", Object.keys(userSocketMap))
+        
+        if(userId && userId!=="undefined"){
+            
+            // Decrement the connection count for the user in Redis
+            const connectionCount = await pubClient.hincrby("online_users", userId, -1);
+            
+            // If this was the last connection for the user, emit the updated list of online users to all connected clients
+            if(connectionCount <=0){
+                await pubClient.hdel("online_users", userId);
+
+                const onlineUsers = await pubClient.hkeys("online_users");
+                io.emit("getOnlineUsers", onlineUsers);
+            }
+        }
     })
 })
 
 
-export {app, io, server}
+export {app, io, server, pubClient}
