@@ -11,7 +11,7 @@ import connectToMongoDB from "./db/connectToMongoDB.js";
 import authRouter from "./routes/auth.routes.js"
 import messagesRouter from "./routes/message.routes.js"
 import usersRouter from "./routes/user.routes.js"
-import { app, server } from "./socket/socket.js";
+import { app, pubClient, server } from "./socket/socket.js";
 
 const PORT = process.env.PORT || 5000;
 const __dirname = path.resolve();
@@ -54,3 +54,41 @@ server.listen(PORT, ()=>{
     connectToMongoDB();
     console.log(`server running on port ${PORT}`);
 })
+
+const gracefulShutdown = async (signal)=>{
+    console.log(`Received ${signal}. Cleaning up zombie connections...`);
+
+    try {
+        for(const [socketId, socket] of io.sockets.sockets){
+            const userId = socket.handshake.query.userId;
+            if(userId && userId !== "undefined"){
+                // Decrement the connection count for the user in Redis
+                const connectionCount = await pubClient.hincrby("online_users", userId, -1);
+                if(connectionCount <= 0){
+                    await pubClient.hdel("online_users", userId);
+                }
+            }
+            socket.disconnect(true)
+        }
+
+        const onlineUsers = await pubClient.hkeys("online_users");
+        io.emit("getOnlineUsers", onlineUsers)
+
+        await pubClient.quit()
+        await subClient.quit()
+
+        console.log("Zombie processes cleanup completed");
+
+        process.exit(0)
+    } catch (error) {
+        console.error("Error during graceful shutdown:", error);
+        process.exit(1);
+    }
+}
+
+// Listen for Ctrl+C in terminal
+process.on("SIGINT", async () => await gracefulShutdown("SIGINT"));
+// Listen for standard termination signals (like Docker stopping the container)
+process.on("SIGTERM", async () => await gracefulShutdown("SIGTERM"));
+// Listen for Nodemon restart signals
+process.on("SIGUSR2", async () => await gracefulShutdown("SIGUSR2"));

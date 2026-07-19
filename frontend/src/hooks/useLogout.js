@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { useAuthContext } from '../context/AuthContext'
 import toast from 'react-hot-toast';
+import { useSocketContext } from '../context/SocketContext';
 
 // This hook handles user logout functionality
 const useLogout = () => {
     const [loading, setLoading] = useState(false)
     const { setAuthUser } = useAuthContext();
+    const { socket } = useSocketContext();
 
     const logout = async () => {
         setLoading(true)
@@ -19,6 +21,11 @@ const useLogout = () => {
             if(data.error){
                 throw new Error(data.error)
             }
+            
+            if(socket){
+                socket.emit("manual_logout")
+            }
+
             localStorage.removeItem("chatUser")
             setAuthUser(null)
         } catch (error) {

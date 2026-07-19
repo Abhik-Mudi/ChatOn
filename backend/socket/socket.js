@@ -69,6 +69,19 @@ io.on("connection", async (socket)=>{
             }
         }
     })
+
+    socket.on("manual_logout", async()=>{
+        if(userId && userId!=='undefined'){
+            console.log(`User ${userId} logged out.`)
+
+            await pubClient.hdel("online_users", userId)
+
+            const connectionCount = await pubClient.hkeys("online_users");
+            io.emit("getOnlineUsers", connectionCount)
+
+            socket.disconnect(true)
+        }
+    })
 })
 
 
